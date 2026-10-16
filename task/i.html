@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>
+Stewardship Task System
+</title>
+
+<style>
+
+:root{
+
+--bg:#0f172a;
+--card:#1e293b;
+--text:#f8fafc;
+
+--blue:#3b82f6;
+--green:#22c55e;
+--yellow:#facc15;
+--red:#ef4444;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+background:var(--bg);
+color:var(--text);
+
+font-family:
+Segoe UI,
+sans-serif;
+}
+
+header{
+
+padding:30px;
+
+text-align:center;
+
+background:
+linear-gradient(
+135deg,
+#2563eb,
+#0891b2
+);
+}
+
+header h1{
+
+font-size:30px;
+}
+
+.container{
+
+max-width:1200px;
+
+margin:auto;
+
+padding:20px;
+}
+
+.stats{
+
+display:grid;
+
+grid-template-columns:
+repeat(
+auto-fit,
+minmax(
+200px,
+1fr
+)
+);
+
+gap:15px;
+
+margin-bottom:25px;
+}
+
+.stat{
+
+background:var(--card);
+
+padding:20px;
+
+border-radius:15px;
+
+text-align:center;
+}
+
+.stat h2{
+
+font-size:32px;
+
+color:#60a5fa;
+}
+
+#search{
+
+width:100%;
+
+padding:15px;
+
+margin-bottom:20px;
+
+border:none;
+
+border-radius:10px;
+
+background:#1e293b;
+
+color:white;
+}
+
+.task{
+
+background:var(--card);
+
+padding:20px;
+
+border-radius:15px;
+
+margin-bottom:20px;
+}
+
+.badge{
+
+display:inline-block;
+
+padding:8px 15px;
+
+border-radius:20px;
+
+font-size:12px;
+
+font-weight:bold;
+}
+
+.active{
+
+background:#14532d;
+
+color:#4ade80;
+}
+
+.completed{
+
+background:#1d4ed8;
+
+color:#93c5fd;
+}
+
+.title{
+
+font-size:24px;
+
+margin:15px 0;
+}
+
+.progress{
+
+height:12px;
+
+background:#334155;
+
+border-radius:20px;
+
+overflow:hidden;
+
+margin:15px 0;
+}
+
+.progress-fill{
+
+height:100%;
+
+background:#22c55e;
+}
+
+.section{
+
+margin-top:15px;
+}
+
+.section-title{
+
+font-weight:bold;
+
+margin-bottom:10px;
+}
+
+.step{
+
+padding:8px 0;
+
+border-bottom:
+1px solid #334155;
+}
+
+.done{
+
+color:#22c55e;
+}
+
+.pending{
+
+color:#94a3b8;
+}
+
+.note{
+
+padding:10px;
+
+background:#0f172a;
+
+border-radius:10px;
+
+margin-bottom:10px;
+}
+
+.overview{
+
+background:#0b1220;
+
+padding:15px;
+
+border-radius:10px;
+
+white-space:pre-wrap;
+}
+
+.footer{
+
+text-align:center;
+
+padding:40px;
+
+color:#64748b;
+}
+
+@media(max-width:768px){
+
+.title{
+font-size:20px;
+}
+
+.container{
+padding:12px;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>
+Stewardship Task System
+</h1>
+
+<p>
+Inheritable Task Registry
+</p>
+
+</header>
+
+<div class="container">
+
+<div class="stats">
+
+<div class="stat">
+<h2 id="totalTasks">0</h2>
+<div>Total Tasks</div>
+</div>
+
+<div class="stat">
+<h2 id="activeTasks">0</h2>
+<div>Active</div>
+</div>
+
+<div class="stat">
+<h2 id="completedTasks">0</h2>
+<div>Completed</div>
+</div>
+
+</div>
+
+<input
+id="search"
+placeholder="Search Tasks">
+
+<div id="tasks"></div>
+
+</div>
+
+<div class="footer">
+
+Every Task Documented
+
+</div>
+
+<script>
+
+let allTasks=[];
+
+async function loadData(){
+
+const response =
+await fetch(
+'../data.json'
+);
+
+const data =
+await response.json();
+
+allTasks =
+data.tasks;
+
+updateStats();
+
+render(
+allTasks
+);
+
+}
+
+function updateStats(){
+
+let total =
+allTasks.length;
+
+let active =
+allTasks.filter(
+x=>
+x.status==="active"
+).length;
+
+let completed =
+allTasks.filter(
+x=>
+x.status==="completed"
+).length;
+
+document
+.getElementById(
+'totalTasks'
+).innerText=
+total;
+
+document
+.getElementById(
+'activeTasks'
+).innerText=
+active;
+
+document
+.getElementById(
+'completedTasks'
+).innerText=
+completed;
+}
+
+function render(tasks){
+
+let html='';
+
+tasks.forEach(task=>{
+
+let badge =
+
+task.status==="completed"
+
+? 'completed'
+
+: 'active';
+
+let stepsHtml='';
+
+(task.steps||[])
+
+.forEach(step=>{
+
+stepsHtml +=
+
+`
+
+<div class="step">
+
+<span class="${
+step.completed
+?
+'done'
+:
+'pending'
+}">
+
+${step.completed ? '✓' : '○'}
+
+${step.title}
+
+</span>
+
+</div>
+
+`;
+
+});
+
+let noteHtml='';
+
+(task.notes||[])
+
+.forEach(note=>{
+
+noteHtml +=
+
+`
+<div class="note">
+${note}
+</div>
+`;
+
+});
+
+let attachmentHtml='';
+
+(task.attachments||[])
+
+.forEach(file=>{
+
+attachmentHtml +=
+
+`
+<div>
+
+📁
+${file.original}
+
+</div>
+`;
+
+});
+
+html +=
+
+`
+
+<div class="task">
+
+<div class="badge ${badge}">
+${task.status}
+</div>
+
+<div class="title">
+${task.heading}
+</div>
+
+<div>
+${task.description}
+</div>
+
+<div style="margin-top:10px">
+
+Task ID:
+${task.task_id}
+
+<br>
+
+Registry:
+${task.registry}
+
+</div>
+
+<div class="progress">
+
+<div
+class="progress-fill"
+style="
+width:
+${task.progress.percentage}%;
+">
+</div>
+
+</div>
+
+<div>
+
+${task.progress.percentage}%
+
+(
+${task.progress.completed}
+
+/
+
+${task.progress.completed + task.progress.remaining}
+
+)
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Steps
+</div>
+
+${stepsHtml}
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Notes
+</div>
+
+${noteHtml}
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Attachments
+</div>
+
+${attachmentHtml}
+
+</div>
+
+${
+task.overview
+
+?
+
+`
+
+<div class="section">
+
+<div class="section-title">
+Overview
+</div>
+
+<div class="overview">
+
+${task.overview}
+
+</div>
+
+</div>
+
+`
+
+:
+
+''
+
+}
+
+</div>
+
+`;
+
+});
+
+document
+.getElementById(
+'tasks'
+)
+.innerHTML=
+html;
+
+}
+
+document
+.getElementById(
+'search'
+)
+.addEventListener(
+'input',
+function(){
+
+const q =
+
+this.value
+.toLowerCase();
+
+const filtered =
+
+allTasks.filter(
+
+task=>
+
+JSON.stringify(task)
+
+.toLowerCase()
+
+.includes(q)
+
+);
+
+render(
+filtered
+);
+
+}
+);
+
+loadData();
+
+</script>
+
+</body>
+
+</html>

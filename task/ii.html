@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Stewardship Task System</title>
+
+    <meta
+        name="description"
+        content="Inheritable Task Registry and Stewardship Dashboard">
+
+    <!-- External CSS -->
+    <link
+        rel="stylesheet"
+        href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+
+        <h1>
+            Stewardship Task System
+        </h1>
+
+        <p>
+            Inheritable Task Registry &
+            Audit Dashboard
+        </p>
+
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Statistics -->
+        <section class="stats">
+
+            <div class="stat">
+                <h2 id="totalTasks">0</h2>
+                <p>Total Tasks</p>
+            </div>
+
+            <div class="stat">
+                <h2 id="activeTasks">0</h2>
+                <p>Active</p>
+            </div>
+
+            <div class="stat">
+                <h2 id="completedTasks">0</h2>
+                <p>Completed</p>
+            </div>
+
+        </section>
+
+        <!-- Search -->
+        <section class="search-section">
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="Search task, registry, step, note, overview..."
+                    autocomplete="off">
+
+            </div>
+
+        </section>
+
+        <!-- Tasks Container -->
+        <section id="tasks"
+                 class="tasks-container">
+
+            <!-- Tasks will be loaded dynamically from data.json -->
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div>
+            Stewardship Task System
+        </div>
+
+        <div>
+            Every Task Documented,
+            Tracked,
+            Inherited
+        </div>
+
+    </footer>
+
+    <!-- External JavaScript -->
+    <script src="js/script.js"></script>
+
+</body>
+
+</html>
