@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Stewardship Task System: task registry, step tracking and audit dashboard">
+<title>Stewardship Task System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f2a44;
+  --ink-2: #1e4467;
+  --paper: #f4f2ec;
+  --surface: #ffffff;
+  --surface-2: #faf9f5;
+  --line: #e2ded3;
+  --text: #1b2430;
+  --muted: #5d6878;
+  --gold: #a87a2c;
+  --done: #2e7d5b;
+  --live: #b5651d;
+  --focus: #2b6cb0;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(15, 42, 68, .06), 0 8px 22px rgba(15, 42, 68, .06);
+  --sans: "Hind Siliguri", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #0a1b2c;
+    --ink-2: #17324f;
+    --paper: #0c1620;
+    --surface: #122131;
+    --surface-2: #0f1d2b;
+    --line: #24364a;
+    --text: #e5ebf2;
+    --muted: #9aa8b9;
+    --gold: #d9a54b;
+    --done: #4fb88a;
+    --live: #e0964d;
+    --focus: #7fb2ec;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+
+body {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--paper);
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+img { max-width: 100%; display: block; }
+
+/* ---------- masthead ---------- */
+.masthead {
+  background: var(--ink);
+  color: #f4f7fb;
+  padding: 28px 0 26px;
+  border-bottom: 3px solid var(--gold);
+}
+
+.wrap {
+  width: min(1180px, 100% - 32px);
+  margin-inline: auto;
+}
+
+.masthead-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.logo, .logo-fallback {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, .08);
+}
+
+.logo-fallback {
+  display: grid;
+  place-items: center;
+  font: 600 20px var(--mono);
+  letter-spacing: .04em;
+  color: var(--gold);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+
+.masthead h1 {
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.masthead .sub {
+  opacity: .78;
+  font-size: .95rem;
+  margin-top: 2px;
+}
+
+.masthead .meta {
+  margin-left: auto;
+  font: 400 12px/1.5 var(--mono);
+  opacity: .72;
+  text-align: right;
+}
+
+/* ---------- stats ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: -22px 0 24px;
+  position: relative;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat .label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stat .value {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat .value { color: var(--text); }
+
+.stat .bar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.stat .bar span {
+  display: block;
+  height: 100%;
+  background: var(--done);
+  transition: width .6s ease;
+}
+
+/* ---------- toolbar ---------- */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.search {
+  flex: 1 1 280px;
+  position: relative;
+}
+
+.search input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 12px 14px 12px 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.search input::placeholder { color: var(--muted); }
+
+.search svg {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.filters {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.filters button {
+  font: inherit;
+  font-size: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.filters button[aria-pressed="true"] {
+  background: var(--ink);
+  color: #f4f7fb;
+}
+
+.count {
+  font: 400 13px var(--mono);
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* ---------- task cards ---------- */
+.list {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--live);
+}
+
+.card.is-done { border-left-color: var(--done); }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.status.live { background: var(--live); }
+.status.done { background: var(--done); }
+
+.ids {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ids span, .stamps span {
+  font: 500 12px var(--mono);
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+.ids span { color: var(--text); }
+
+.stamps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.stamps b {
+  font-weight: 600;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.card-title {
+  font-size: 1.22rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 14px 0 8px;
+  color: var(--text);
+}
+
+.preview {
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.progress-row .bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 8px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progress-row .bar span {
+  display: block;
+  height: 100%;
+  background: var(--done);
+  border-radius: 8px;
+}
+
+.pct {
+  font: 500 13px var(--mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.toggle {
+  margin-top: 16px;
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--ink-2);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.toggle { color: var(--focus); border-color: var(--focus); }
+
+.toggle:hover { background: var(--ink); color: #f4f7fb; border-color: var(--ink); }
+
+.details {
+  margin-top: 18px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.details[hidden] { display: none; }
+
+.details h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin: 20px 0 10px;
+}
+
+.details h3 { color: var(--focus); }
+
+.details .full {
+  white-space: pre-line;
+  color: var(--text);
+}
+
+.note {
+  background: var(--surface-2);
+  border-left: 3px solid var(--gold);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.steps {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.step .mark {
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 12px var(--mono);
+  border: 1.5px solid var(--muted);
+  color: var(--muted);
+}
+
+.step.ok .mark {
+  background: var(--done);
+  border-color: var(--done);
+  color: #fff;
+}
+
+.step-title { font-weight: 500; }
+
+.step-time {
+  font: 400 12px/1.5 var(--mono);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.step.ok .step-title { color: var(--text); }
+.step:not(.ok) .step-title { color: var(--muted); }
+
+.history {
+  list-style: none;
+  border-left: 2px solid var(--line);
+  margin-left: 6px;
+  padding-left: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.history li { position: relative; font-size: 15px; }
+
+.history li::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.history .mono {
+  display: block;
+  font: 400 12px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.file {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--focus);
+  text-decoration: none;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.file small { color: var(--muted); font: 400 12px var(--mono); }
+
+.muted { color: var(--muted); font-size: 15px; }
+
+.completed-box {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--done) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--done) 40%, transparent);
+  font: 400 13px/1.7 var(--mono);
+}
+
+.overview {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  font: 400 14px/1.7 var(--sans);
+  color: var(--muted);
+  background: var(--surface-2);
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.empty, .error {
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.error {
+  border-color: var(--live);
+  color: var(--text);
+  text-align: left;
+}
+
+.error code, .empty code {
+  font: 500 13px var(--mono);
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ---------- footer ---------- */
+.footer {
+  margin-top: 56px;
+  background: var(--ink);
+  color: #e8eef6;
+  padding: 36px 0 22px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 28px;
+}
+
+.footer h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.footer p, .footer li { font-size: 14px; opacity: .85; }
+
+.footer ul { list-style: none; display: grid; gap: 6px; }
+
+.footer a, .footer button.link {
+  font: inherit;
+  font-size: 14px;
+  color: #e8eef6;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  opacity: .9;
+  text-align: left;
+}
+
+.footer a:hover, .footer button.link:hover { text-decoration: underline; opacity: 1; }
+
+.footer-bottom {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font: 400 12px var(--mono);
+  opacity: .7;
+}
+
+/* ---------- dialogs ---------- */
+dialog {
+  width: min(680px, 94vw);
+  max-height: 86vh;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+}
+
+dialog::backdrop { background: rgba(8, 20, 34, .55); }
+
+.dlg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.dlg-head h2 { font-size: 1.1rem; }
+
+.dlg-body { padding: 18px 20px 22px; display: grid; gap: 14px; font-size: 15px; }
+
+.dlg-body h3 { font-size: 15px; color: var(--focus); }
+
+.dlg-body ul { padding-left: 18px; display: grid; gap: 4px; }
+
+.cmd {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 8px 8px 12px;
+}
+
+.cmd code {
+  flex: 1;
+  font: 400 13px/1.5 var(--mono);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cmd button, .close {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-grid > div:first-child { grid-column: 1 / -1; }
+}
+
+@media (max-width: 600px) {
+  .masthead { padding: 22px 0 60px; }
+  .masthead .meta { display: none; }
+  .logo, .logo-fallback { width: 52px; height: 52px; flex-basis: 52px; }
+  .stats { margin-top: -40px; gap: 10px; }
+  .stat { padding: 14px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .filters { width: 100%; }
+  .filters button { flex: 1; padding: 9px 6px; font-size: 13px; }
+  .count { margin-left: 0; }
+  .card { padding: 18px 16px; }
+  .card-title { font-size: 1.08rem; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead-row">
+    <img class="logo" id="logo" src="assets/logo.png" alt="Logo">
+    <div>
+      <h1>Stewardship Task System</h1>
+      <div class="sub">টাস্ক ট্র্যাকিং · রেজিস্ট্রি · অডিট ড্যাশবোর্ড</div>
+    </div>
+    <div class="meta" id="meta">লোড হচ্ছে…</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="stats" id="stats" aria-label="সারসংক্ষেপ">
+    <div class="stat"><div class="label">মোট টাস্ক</div><div class="value">–</div></div>
+    <div class="stat"><div class="label">সক্রিয়</div><div class="value">–</div></div>
+    <div class="stat"><div class="label">সম্পন্ন</div><div class="value">–</div></div>
+    <div class="stat"><div class="label">সামগ্রিক অগ্রগতি</div><div class="value">–</div></div>
+  </section>
+
+  <div class="toolbar">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">অনুসন্ধান</span>
+      <input id="search" type="search" placeholder="TASK / REG আইডি, শিরোনাম, নোট বা ধাপ খুঁজুন…" autocomplete="off">
+    </label>
+    <div class="filters" role="group" aria-label="স্ট্যাটাস ফিল্টার">
+      <button type="button" data-filter="all" aria-pressed="true">সব</button>
+      <button type="button" data-filter="active" aria-pressed="false">সক্রিয়</button>
+      <button type="button" data-filter="completed" aria-pressed="false">সম্পন্ন</button>
+    </div>
+    <span class="count" id="count"></span>
+  </div>
+
+  <section class="list" id="list" aria-live="polite"></section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>Stewardship Task System</h4>
+        <p>প্রতিটি টাস্ক নথিভুক্ত, ট্র্যাকড, অডিটযোগ্য এবং উত্তরাধিকারযোগ্য। সময় সংরক্ষিত হয় ঢাকা (UTC+06) ও UTC উভয়ে।</p>
+        <p style="margin-top:10px">মালিক: <strong>mj-ahmad</strong></p>
+      </div>
+      <div>
+        <h4>দ্রুত লিংক</h4>
+        <ul>
+          <li><button class="link" type="button" data-dialog="dlg-help">হেল্প</button></li>
+          <li><button class="link" type="button" data-dialog="dlg-cli">CLI কমান্ড</button></li>
+          <li><button class="link" type="button" id="goTracker">সেলফ ট্র্যাকার</button></li>
+          <li><a href="README.md">ডকুমেন্টেশন (README)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>ডেটা</h4>
+        <ul>
+          <li><a href="data.json" target="_blank" rel="noopener">DB · data.json</a></li>
+          <li><a href="registry.json" target="_blank" rel="noopener">রেজিস্ট্রি · registry.json</a></li>
+          <li><a href="attachments/" target="_blank" rel="noopener">সংযুক্তি ফোল্ডার</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Stewardship Task System</span>
+      <span>Dhaka UTC+06 · ISO 8601</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Help -->
+<dialog id="dlg-help" aria-labelledby="h-help">
+  <div class="dlg-head"><h2 id="h-help">হেল্প</h2><button class="close" type="button" data-close>বন্ধ করুন</button></div>
+  <div class="dlg-body">
+    <div>
+      <h3>কার্ড কীভাবে পড়বেন</h3>
+      <ul>
+        <li><strong>TASK ID</strong> — টাস্কের স্বতন্ত্র নম্বর (যেমন TASK-000001)।</li>
+        <li><strong>REG ID</strong> — রেজিস্ট্রি নম্বর, যা রেজিস্ট্রিতে টাস্কের অবস্থান নির্দেশ করে।</li>
+        <li><strong>ঢাকা / UTC</strong> — টাস্ক তৈরির সময়; প্রতিটি ধাপের সমাপ্তির সময়ও দুই সময়ে লেখা থাকে।</li>
+        <li><strong>সম্পূর্ণ রেকর্ড</strong> — বিবরণ, নোট, ধাপ, সংযুক্তি ও কার্যক্রম ইতিহাস দেখায়।</li>
+      </ul>
+    </div>
+    <div>
+      <h3>ডেটা কোথা থেকে আসে</h3>
+      <p>এই ড্যাশবোর্ড সরাসরি <code>data.json</code> থেকে পড়ে এবং প্রতি ৩০ সেকেন্ডে নতুন করে লোড হয়। ডেটা বদলাতে শুধু CLI ব্যবহার করুন।</p>
+    </div>
+    <div>
+      <h3>সমস্যা হলে</h3>
+      <p>পেজ খালি বা "ডেটা লোড হয়নি" দেখালে ফাইলটি সরাসরি না খুলে <code>./run.sh web</code> দিয়ে চালান।</p>
+    </div>
+  </div>
+</dialog>
+
+<!-- CLI -->
+<dialog id="dlg-cli" aria-labelledby="h-cli">
+  <div class="dlg-head"><h2 id="h-cli">CLI কমান্ড</h2><button class="close" type="button" data-close>বন্ধ করুন</button></div>
+  <div class="dlg-body">
+    <div>
+      <h3>নতুন টাস্ক</h3>
+      <div class="cmd"><code>./run.sh task "শিরোনাম" "বিবরণ" --steps "ধাপ ১, ধাপ ২"</code><button type="button" data-copy='./run.sh task "শিরোনাম" "বিবরণ" --steps "ধাপ ১, ধাপ ২"'>কপি</button></div>
+    </div>
+    <div>
+      <h3>ধাপ সম্পন্ন (টাইমস্ট্যাম্পসহ)</h3>
+      <div class="cmd"><code>./run.sh track TASK-000001 1</code><button type="button" data-copy="./run.sh track TASK-000001 1">কপি</button></div>
+    </div>
+    <div>
+      <h3>টাস্ক সম্পন্ন ও আর্কাইভ</h3>
+      <div class="cmd"><code>./run.sh complete TASK-000001</code><button type="button" data-copy="./run.sh complete TASK-000001">কপি</button></div>
+    </div>
+    <div>
+      <h3>ডেটাবেস যাচাই</h3>
+      <div class="cmd"><code>./run.sh validate</code><button type="button" data-copy="./run.sh validate">কপি</button></div>
+    </div>
+    <div>
+      <h3>ড্যাশবোর্ড চালু</h3>
+      <div class="cmd"><code>./run.sh web</code><button type="button" data-copy="./run.sh web">কপি</button></div>
+      <p class="muted" style="margin-top:8px">মোবাইলে দেখতে: <code>BIND=0.0.0.0 ./run.sh web</code></p>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  "use strict";
+
+  const state = {
+    tasks: [],
+    filter: "all",
+    query: "",
+    open: new Set(),
+  };
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  const esc = (value) =>
+    String(value ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]));
+
+  const fmtSize = (bytes) => {
+    if (!Number.isFinite(bytes)) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
+  // Progress is recomputed from steps so the dashboard stays correct
+  // even if a stored percentage is stale.
+  const stepStats = (task) => {
+    const steps = Array.isArray(task.steps) ? task.steps : [];
+    const done = steps.filter((s) => s.completed).length;
+    const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+    return { total: steps.length, done, pct };
+  };
+
+  const matches = (task) => {
+    if (state.filter !== "all" && task.status !== state.filter) return false;
+    if (!state.query) return true;
+
+    const haystack = [
+      task.task_id,
+      task.registry,
+      task.heading,
+      task.description,
+      ...(task.notes || []),
+      ...(task.steps || []).map((s) => s.title),
+    ].join(" ").toLowerCase();
+
+    return haystack.includes(state.query);
+  };
+
+  const detailsHTML = (task) => {
+    const steps = (task.steps || []).map((s) => `
+      <li class="step ${s.completed ? "ok" : ""}">
+        <span class="mark">${s.completed ? "✓" : esc(s.id)}</span>
+        <div>
+          <div class="step-title">${esc(s.title)}</div>
+          <div class="step-time">${
+            s.completed
+              ? `ঢাকা ${esc(s.completed_dhaka)} · UTC ${esc(s.completed_utc)}`
+              : "বাকি"
+          }</div>
+        </div>
+      </li>`).join("");
+
+    const notes = (task.notes || []).length
+      ? task.notes.map((n) => `<div class="note">${esc(n)}</div>`).join("")
+      : `<p class="muted">কোনো নোট নেই।</p>`;
+
+    const files = (task.attachments || []).length
+      ? `<div class="files">${task.attachments.map((a) => `
+          <a class="file" href="${esc(a.file)}" download>
+            ${esc(a.original)} <small>${esc(fmtSize(a.size))}</small>
+          </a>`).join("")}</div>`
+      : `<p class="muted">কোনো সংযুক্তি নেই।</p>`;
+
+    const history = (task.history || []).length
+      ? `<ol class="history">${task.history.slice().reverse().map((h) => `
+          <li>
+            <span class="mono">ঢাকা ${esc(h.dhaka)} · UTC ${esc(h.utc)}</span>
+            ${esc(h.action)}
+          </li>`).join("")}</ol>`
+      : `<p class="muted">কোনো ইতিহাস নেই।</p>`;
+
+    const completed = task.completed_utc
+      ? `<div class="completed-box">
+          সম্পন্ন: ঢাকা ${esc(task.completed_dhaka)} · UTC ${esc(task.completed_utc)}
+        </div>`
+      : "";
+
+    const overview = task.overview
+      ? `<h3>আর্কাইভ রিপোর্ট</h3><pre class="overview">${esc(task.overview)}</pre>`
+      : "";
+
+    return `
+      <h3>পূর্ণ বিবরণ</h3>
+      <p class="full">${esc(task.description)}</p>
+      ${completed}
+      <h3>নোট</h3>
+      ${notes}
+      <h3>ধাপসমূহ</h3>
+      <ol class="steps">${steps || `<li class="muted">কোনো ধাপ নির্ধারিত নেই।</li>`}</ol>
+      <h3>সংযুক্তি</h3>
+      ${files}
+      ${overview}
+      <h3>কার্যক্রম ইতিহাস</h3>
+      ${history}`;
+  };
+
+  const cardHTML = (task) => {
+    const isDone = task.status === "completed";
+    const open = state.open.has(task.task_id);
+    const { total, done, pct } = stepStats(task);
+    const detailId = `d-${esc(task.task_id)}`;
+
+    return `
+      <article class="card ${isDone ? "is-done" : ""}" id="${esc(task.task_id)}">
+        <div class="card-top">
+          <span class="status ${isDone ? "done" : "live"}">${isDone ? "সম্পন্ন" : "সক্রিয়"}</span>
+          <div class="ids">
+            <span title="টাস্ক আইডি">${esc(task.task_id)}</span>
+            <span title="রেজিস্ট্রি আইডি">${esc(task.registry)}</span>
+          </div>
+        </div>
+
+        <div class="stamps">
+          <span><b>ঢাকা</b>${esc(task.created_dhaka)}</span>
+          <span><b>UTC</b>${esc(task.created_utc)}</span>
+        </div>
+
+        <h2 class="card-title">${esc(task.heading)}</h2>
+        <p class="preview">${esc(task.description)}</p>
+
+        <div class="progress-row">
+          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+            <span style="width:${pct}%"></span>
+          </div>
+          <span class="pct">${done}/${total} · ${pct}%</span>
+        </div>
+
+        <button class="toggle" type="button"
+          data-toggle="${esc(task.task_id)}"
+          aria-expanded="${open}"
+          aria-controls="${detailId}">
+          ${open ? "রেকর্ড বন্ধ করুন" : "সম্পূর্ণ রেকর্ড দেখুন"}
+        </button>
+
+        <div class="details" id="${detailId}" ${open ? "" : "hidden"}>
+          ${detailsHTML(task)}
+        </div>
+      </article>`;
+  };
+
+  const renderStats = () => {
+    const tasks = state.tasks;
+    const active = tasks.filter((t) => t.status === "active").length;
+    const completed = tasks.filter((t) => t.status === "completed").length;
+    const steps = tasks.flatMap((t) => t.steps || []);
+    const stepsDone = steps.filter((s) => s.completed).length;
+    const overall = steps.length ? Math.round((stepsDone / steps.length) * 100) : 0;
+
+    $("#stats").innerHTML = `
+      <div class="stat"><div class="label">মোট টাস্ক</div><div class="value">${tasks.length}</div></div>
+      <div class="stat"><div class="label">সক্রিয়</div><div class="value">${active}</div></div>
+      <div class="stat"><div class="label">সম্পন্ন</div><div class="value">${completed}</div></div>
+      <div class="stat">
+        <div class="label">সামগ্রিক অগ্রগতি · ${stepsDone}/${steps.length} ধাপ</div>
+        <div class="value">${overall}%</div>
+        <div class="bar"><span style="width:${overall}%"></span></div>
+      </div>`;
+  };
+
+  const render = () => {
+    renderStats();
+
+    const visible = state.tasks.filter(matches);
+    $("#count").textContent = `${visible.length} / ${state.tasks.length} টাস্ক`;
+
+    if (!state.tasks.length) {
+      $("#list").innerHTML = `
+        <div class="empty">এখনও কোনো টাস্ক নেই। <code>./run.sh task "শিরোনাম" "বিবরণ"</code> দিয়ে শুরু করুন।</div>`;
+      return;
+    }
+
+    $("#list").innerHTML = visible.length
+      ? visible.map(cardHTML).join("")
+      : `<div class="empty">কোনো টাস্ক মেলেনি। অনুসন্ধান বা ফিল্টার বদলান।</div>`;
+  };
+
+  const load = async () => {
+    try {
+      const res = await fetch("data.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      state.tasks = Array.isArray(data.tasks) ? data.tasks : [];
+      $("#meta").textContent = `সর্বশেষ আপডেট\n${new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Dhaka" })} ঢাকা`;
+      $("#meta").style.whiteSpace = "pre-line";
+      render();
+    } catch (err) {
+      $("#list").innerHTML = `
+        <div class="error">
+          <strong>ডেটা লোড হয়নি</strong> (${esc(err.message)})।<br>
+          পেজটি অবশ্যই HTTP সার্ভারে চালান: <code>./run.sh web</code><br>
+          সরাসরি ফাইল হিসেবে খুললে ব্রাউজার <code>data.json</code> পড়তে পারে না।
+        </div>`;
+    }
+  };
+
+  // ---- events ----
+
+  $("#search").addEventListener("input", (e) => {
+    state.query = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  document.querySelector(".filters").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-filter]");
+    if (!btn) return;
+    state.filter = btn.dataset.filter;
+    document.querySelectorAll(".filters button").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b === btn)));
+    render();
+  });
+
+  $("#list").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-toggle]");
+    if (!btn) return;
+    const id = btn.dataset.toggle;
+    state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+    render();
+  });
+
+  document.querySelectorAll("[data-dialog]").forEach((btn) =>
+    btn.addEventListener("click", () => $(`#${btn.dataset.dialog}`).showModal()));
+
+  document.querySelectorAll("dialog").forEach((dlg) => {
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.querySelector("[data-close]").addEventListener("click", () => dlg.close());
+  });
+
+  document.querySelectorAll("[data-copy]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy);
+        btn.textContent = "কপি হয়েছে ✓";
+      } catch {
+        btn.textContent = "ব্যর্থ";
+      }
+      setTimeout(() => (btn.textContent = original), 1500);
+    }));
+
+  $("#goTracker").addEventListener("click", () => {
+    state.filter = "active";
+    document.querySelectorAll(".filters button").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.filter === "active")));
+    render();
+    $("#list").scrollIntoView();
+  });
+
+  const logo = $("#logo");
+  const useFallbackLogo = () => {
+    const fallback = document.createElement("div");
+    fallback.className = "logo-fallback";
+    fallback.textContent = "ST";
+    fallback.setAttribute("role", "img");
+    fallback.setAttribute("aria-label", "Logo");
+    logo.replaceWith(fallback);
+  };
+  if (logo.complete && logo.naturalWidth === 0) useFallbackLogo();
+  else logo.addEventListener("error", useFallbackLogo, { once: true });
+
+  load();
+  setInterval(() => { if (!document.hidden) load(); }, 30000);
+})();
+</script>
+</body>
+</html>

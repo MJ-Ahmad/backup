@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Self / Life Tracker · mj-ahmad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#0b1220;--panel:#111a2e;--panel2:#16213a;--line:#24324f;--text:#e6edf7;--muted:#8ea0bf;--accent:#38bdf8;--ok:#34d399;--warn:#fbbf24;--r:14px;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f6fb;--panel:#fff;--panel2:#eef3fa;--line:#d9e2ef;--text:#0f172a;--muted:#5b6b85;--accent:#0369a1;--ok:#047857;--warn:#b45309;color-scheme:light}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 "Hind Siliguri",system-ui,sans-serif;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 40px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:13px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand img,.fallback{width:44px;height:44px;border-radius:12px;flex:0 0 44px;object-fit:cover}
+.fallback{display:grid;place-items:center;background:linear-gradient(135deg,#2563eb,#0891b2);color:#fff;font-weight:700}
+.brand h1{font-size:20px;margin:0;line-height:1.2}
+.brand small{color:var(--muted);font-size:13px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;font-family:inherit}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#06121f}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.stat b{display:block;font-size:24px;line-height:1.1}
+.stat span{color:var(--muted);font-size:13px}
+.controls{position:sticky;top:0;z-index:10;background:var(--bg);padding:8px 0 12px}
+#q{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;outline:none}
+#q:focus{border-color:var(--accent)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chip-btn{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:14px}
+.chip-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--panel2)}
+.day{margin:22px 0 10px;color:var(--muted);font-size:14px;display:flex;gap:8px;align-items:center}
+.day::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--panel2);cursor:pointer;font-family:inherit}
+.tag.id{color:var(--accent)}
+.tag.reg{color:var(--ok)}
+.times{color:var(--muted);font-size:12.5px;margin:8px 0 2px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.card h2{font-size:18px;margin:6px 0 4px;line-height:1.35;word-break:break-word}
+.desc{margin:4px 0 0;white-space:pre-line;color:var(--text);opacity:.92;word-break:break-word}
+.desc.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.more{background:none;border:0;color:var(--accent);padding:4px 0;cursor:pointer;font:inherit;font-size:14px}
+.meta{margin-top:10px;font-size:13px;color:var(--muted);word-break:break-all}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 13px;border-radius:10px;cursor:pointer;font:inherit;font-size:14px;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.empty{text-align:center;color:var(--muted);padding:40px 12px;border:1px dashed var(--line);border-radius:var(--r)}
+section.doc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:16px;scroll-margin-top:16px}
+section.doc h3{margin:0 0 8px}
+pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:13px;white-space:pre}
+footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center}
+footer nav{display:flex;flex-wrap:wrap;gap:8px 14px}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ok);color:#06121f;padding:10px 16px;border-radius:10px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (max-width:720px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .card h2{font-size:17px}
+  .actions .btn{flex:1 1 calc(50% - 8px)}
+}
+@media (max-width:380px){.brand h1{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand">
+    <img id="logo" src="assets/logo.png" alt="Logo" onerror="this.remove();document.getElementById('fb').hidden=false">
+    <div id="fb" class="fallback" hidden>SL</div>
+    <div>
+      <h1 data-i18n="title"></h1>
+      <small data-i18n="sub"></small>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="Language">
+    <button data-lang="en" aria-pressed="true">EN</button>
+    <button data-lang="bn" aria-pressed="false">BN</button>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><b id="sTotal">0</b><span data-i18n="total"></span></div>
+  <div class="stat"><b id="sWeek">0</b><span data-i18n="week"></span></div>
+  <div class="stat"><b id="sMood">—</b><span data-i18n="mood"></span></div>
+  <div class="stat"><b id="sLast" class="mono">—</b><span data-i18n="last"></span></div>
+</div>
+
+<div class="controls">
+  <input id="q" type="search" autocomplete="off">
+  <div id="chips" class="chips"></div>
+</div>
+
+<main id="timeline"></main>
+
+<section id="help" class="doc"><h3 data-i18n="helpTitle"></h3><p data-i18n="helpBody"></p></section>
+<section id="cli" class="doc"><h3 data-i18n="cliTitle"></h3><pre>python3 life.py log "one line of progress" --category learning --mood 4
+python3 life.py add "Heading" "Description" --body-file notes.md --tag a,b --link TASK-000001
+python3 life.py add "Heading" "Description" --add-file ./proof.pdf
+python3 life.py list --limit 10
+python3 life.py validate
+
+./run.sh            # validate, then serve on http://127.0.0.1:8000</pre></section>
+<section id="dev" class="doc"><h3 data-i18n="devTitle"></h3><p data-i18n="devBody"></p><pre>life.py        CLI + storage library (atomic writes, IDs, checksums)
+data.json      every tracking entry, newest first
+registry.json  ID counters (LIFE-, REG-)
+attachments/   files copied in with --add-file
+assets/        logo.png
+index.html     this dashboard (static, no build step)
+run.sh         validate and serve</pre></section>
+<section id="registry" class="doc"><h3 data-i18n="regTitle"></h3><pre id="regBox">…</pre></section>
+<section id="self" class="doc"><h3 data-i18n="selfTitle"></h3><p data-i18n="selfBody"></p></section>
+
+<footer>
+  <span data-i18n="footer"></span>
+  <nav>
+    <a href="#help" data-i18n="navHelp"></a>
+    <a href="#cli" data-i18n="navCli"></a>
+    <a href="#dev" data-i18n="navDev"></a>
+    <a href="#registry" data-i18n="navReg"></a>
+    <a href="#self" data-i18n="navSelf"></a>
+  </nav>
+</footer>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+const I18N = {
+  en: {
+    title: "Self / Life Tracker", sub: "Personal tracking ledger · mj-ahmad",
+    total: "Entries", week: "Last 7 days", mood: "Average mood", last: "Latest ID",
+    search: "Search ID, heading, text, tags…", all: "All",
+    more: "Read full", less: "Show less", dhaka: "Dhaka", utc: "UTC", moodLbl: "Mood",
+    copyRecord: "Copy record", copyId: "Copy ID", copySha: "Copy SHA-256", download: "Download",
+    file: "File", missing: "file not in this copy", none: "No entries match this view.",
+    loadFail: "Could not load data.json. Start the dashboard with ./run.sh",
+    copied: "Copied", copyFail: "Copy failed",
+    helpTitle: "Help", cliTitle: "CLI", devTitle: "Dev", regTitle: "Registry", selfTitle: "Self Tracker",
+    navHelp: "Help", navCli: "CLI", navDev: "Dev", navReg: "Registry", navSelf: "Self Tracker",
+    footer: "Track every step. Keep it inheritable.",
+    helpBody: "Every entry gets a LIFE tracking ID, a REG registry ID, Dhaka and UTC timestamps. Click a card to expand it, or copy its full record as Markdown.",
+    devBody: "Plain files, no build step. Copy the folder to inherit the whole system.",
+    selfBody: "A living record of learning, work, health, faith and reflection. Log small, review often, and let the timeline show the progress.",
+    cat: { health: "Health", learning: "Learning", work: "Work", habits: "Habits", relationships: "Relationships", faith: "Faith", finance: "Finance", reflection: "Reflection", other: "Other" }
+  },
+  bn: {
+    title: "সেলফ / লাইফ ট্র্যাকার", sub: "ব্যক্তিগত ট্র্যাকিং খাতা · mj-ahmad",
+    total: "মোট এন্ট্রি", week: "গত ৭ দিন", mood: "গড় মুড", last: "সর্বশেষ আইডি",
+    search: "আইডি, শিরোনাম, লেখা, ট্যাগ খুঁজুন…", all: "সব",
+    more: "পুরোটা পড়ুন", less: "সংক্ষেপে দেখুন", dhaka: "ঢাকা", utc: "ইউটিসি", moodLbl: "মুড",
+    copyRecord: "রেকর্ড কপি", copyId: "আইডি কপি", copySha: "SHA-256 কপি", download: "ডাউনলোড",
+    file: "ফাইল", missing: "এই কপিতে ফাইলটি নেই", none: "এই ভিউতে কোনো এন্ট্রি নেই।",
+    loadFail: "data.json লোড করা যায়নি। ./run.sh দিয়ে চালু করুন",
+    copied: "কপি হয়েছে", copyFail: "কপি ব্যর্থ",
+    helpTitle: "সাহায্য", cliTitle: "সিএলআই", devTitle: "ডেভ", regTitle: "রেজিস্ট্রি", selfTitle: "সেলফ ট্র্যাকার",
+    navHelp: "সাহায্য", navCli: "সিএলআই", navDev: "ডেভ", navReg: "রেজিস্ট্রি", navSelf: "সেলফ ট্র্যাকার",
+    footer: "প্রতিটি ধাপ লিপিবদ্ধ করুন। আজীবন উত্তরাধিকারযোগ্য রাখুন।",
+    helpBody: "প্রতিটি এন্ট্রিতে থাকে LIFE ট্র্যাকিং আইডি, REG রেজিস্ট্রি আইডি, ঢাকা ও UTC সময়। কার্ডে ক্লিক করে পূর্ণ লেখা দেখুন, অথবা পুরো রেকর্ড Markdown হিসেবে কপি করুন।",
+    devBody: "কোনো বিল্ড ধাপ ছাড়াই সাধারণ ফাইল। পুরো ফোল্ডার কপি করলেই সিস্টেমটি উত্তরাধিকার হিসেবে পাওয়া যাবে।",
+    selfBody: "শেখা, কাজ, স্বাস্থ্য, ইমান ও আত্মবিশ্লেষণের একটি জীবন্ত খাতা। ছোট ছোট করে লিখুন, নিয়মিত দেখুন, আর টাইমলাইনেই অগ্রগতি ফুটে উঠুক।",
+    cat: { health: "স্বাস্থ্য", learning: "শিক্ষা", work: "কাজ", habits: "অভ্যাস", relationships: "সম্পর্ক", faith: "ইমান", finance: "অর্থ", reflection: "আত্মবিশ্লেষণ", other: "অন্যান্য" }
+  }
+};
+
+const state = { lang: "en", query: "", cat: "all", entries: [], open: new Set() };
+const $ = (s) => document.querySelector(s);
+const t = (k) => I18N[state.lang][k] ?? k;
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dateKey = (ts) => ts.slice(0, 10);
+const toMs = (ts) => Date.parse(ts.replace(" ", "T") + "Z");
+
+function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast(t("copied")); }
+  catch { toast(t("copyFail")); }
+}
+
+function recordMarkdown(e) {
+  const lines = [
+    `## ${e.heading}`, "",
+    `- Tracking: ${e.tracking_id} · Registry: ${e.registry}`,
+    `- Dhaka: ${e.dhaka_time} · UTC: ${e.utc_time}`,
+    `- Category: ${e.category || "other"}`,
+  ];
+  if (e.mood != null) lines.push(`- Mood: ${e.mood}/5`);
+  if (e.tags?.length) lines.push(`- Tags: ${e.tags.join(", ")}`);
+  if (e.links?.length) lines.push(`- Linked: ${e.links.join(", ")}`);
+  lines.push("", e.description);
+  return lines.join("\n");
+}
+
+function applyLang() {
+  document.documentElement.lang = state.lang === "bn" ? "bn" : "en";
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
+  $("#q").placeholder = t("search");
+  localStorage.setItem("lifeLang", state.lang);
+  renderChips();
+  render();
+}
+
+function renderChips() {
+  const keys = ["all", ...Object.keys(I18N[state.lang].cat)];
+  $("#chips").innerHTML = keys.map((k) => {
+    const label = k === "all" ? t("all") : I18N[state.lang].cat[k];
+    return `<button class="chip-btn" data-cat="${k}" aria-pressed="${state.cat === k}">${esc(label)}</button>`;
+  }).join("");
+}
+
+function filtered() {
+  const q = state.query;
+  return state.entries.filter((e) => {
+    if (state.cat !== "all" && (e.category || "other") !== state.cat) return false;
+    if (!q) return true;
+    return JSON.stringify(e).toLowerCase().includes(q);
+  });
+}
+
+function card(e) {
+  const long = e.description.length > 170 || e.description.split("\n").length > 3;
+  const open = state.open.has(e.tracking_id);
+  const cat = I18N[state.lang].cat[e.category] || I18N[state.lang].cat.other;
+  const tags = [...(e.tags || []), ...(e.links || [])].map((x) => `<span class="tag">${esc(x)}</span>`).join("");
+  const mood = e.mood != null ? `<span class="tag">${t("moodLbl")} ${e.mood}/5</span>` : "";
+  const a = e.attachment;
+  const attach = a ? `
+    <div class="meta">${t("file")}: ${a.missing ? `${esc(a.original)} (${t("missing")})` : `<a href="${esc(a.file)}" download style="color:var(--accent)">${esc(a.original)}</a>`}
+      · SHA-256: <span class="mono">${esc(a.sha256.slice(0, 16))}…</span></div>` : "";
+  return `
+  <article class="card">
+    <div class="row">
+      <button class="tag id" data-copy="${esc(e.tracking_id)}" title="${t("copyId")}">${esc(e.tracking_id)}</button>
+      <button class="tag reg" data-copy="${esc(e.registry)}" title="${t("copyId")}">${esc(e.registry)}</button>
+      <span class="tag">${esc(cat)}</span>${mood}
+    </div>
+    <div class="times mono">
+      <span>${t("dhaka")}: ${esc(e.dhaka_time)}</span>
+      <span>${t("utc")}: ${esc(e.utc_time)}</span>
+    </div>
+    <h2>${esc(e.heading)}</h2>
+    <p class="desc ${long && !open ? "clamp" : ""}">${esc(e.description)}</p>
+    ${long ? `<button class="more" data-more="${esc(e.tracking_id)}">${open ? t("less") : t("more")}</button>` : ""}
+    ${tags ? `<div class="row" style="margin-top:8px">${tags}</div>` : ""}
+    ${attach}
+    <div class="actions">
+      <button class="btn" data-md="${esc(e.tracking_id)}">${t("copyRecord")}</button>
+      <button class="btn" data-copy="${esc(e.tracking_id)}">${t("copyId")}</button>
+      ${a ? `<button class="btn" data-copy="${esc(a.sha256)}">${t("copySha")}</button>` : ""}
+    </div>
+  </article>`;
+}
+
+function render() {
+  const list = filtered();
+  if (!list.length) {
+    $("#timeline").innerHTML = `<div class="empty">${t("none")}</div>`;
+    return;
+  }
+  let html = "", lastDay = null;
+  for (const e of list) {
+    const day = dateKey(e.dhaka_time);
+    if (day !== lastDay) { html += `<div class="day mono">${esc(day)}</div>`; lastDay = day; }
+    html += card(e);
+  }
+  $("#timeline").innerHTML = html;
+}
+
+function renderStats() {
+  const now = Date.now();
+  const week = state.entries.filter((e) => now - toMs(e.utc_time) < 7 * 864e5).length;
+  const moods = state.entries.map((e) => e.mood).filter((m) => m != null);
+  $("#sTotal").textContent = state.entries.length;
+  $("#sWeek").textContent = week;
+  $("#sMood").textContent = moods.length ? (moods.reduce((a, b) => a + b, 0) / moods.length).toFixed(1) : "—";
+  $("#sLast").textContent = state.entries[0]?.tracking_id ?? "—";
+}
+
+async function loadRegistry() {
+  try {
+    const reg = await (await fetch("registry.json", { cache: "no-store" })).json();
+    $("#regBox").textContent = JSON.stringify(reg, null, 2);
+  } catch { $("#regBox").textContent = "registry.json"; }
+}
+
+async function load() {
+  try {
+    const res = await fetch("data.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(res.status);
+    state.entries = (await res.json()).entries || [];
+    renderStats();
+    render();
+  } catch {
+    $("#timeline").innerHTML = `<div class="empty">${t("loadFail")}</div>`;
+  }
+}
+
+document.addEventListener("click", async (ev) => {
+  const lang = ev.target.closest("[data-lang]");
+  if (lang) { state.lang = lang.dataset.lang; applyLang(); return; }
+
+  const chip = ev.target.closest("[data-cat]");
+  if (chip) { state.cat = chip.dataset.cat; renderChips(); render(); return; }
+
+  const more = ev.target.closest("[data-more]");
+  if (more) {
+    const id = more.dataset.more;
+    state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+    render();
+    return;
+  }
+
+  const md = ev.target.closest("[data-md]");
+  if (md) {
+    const e = state.entries.find((x) => x.tracking_id === md.dataset.md);
+    if (e) await copyText(recordMarkdown(e));
+    return;
+  }
+
+  const copy = ev.target.closest("[data-copy]");
+  if (copy) await copyText(copy.dataset.copy);
+});
+
+$("#q").addEventListener("input", (e) => {
+  state.query = e.target.value.trim().toLowerCase();
+  render();
+});
+
+state.lang = localStorage.getItem("lifeLang") === "bn" ? "bn" : "en";
+applyLang();
+load();
+loadRegistry();
+</script>
+</body>
+</html>

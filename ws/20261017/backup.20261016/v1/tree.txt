@@ -1,0 +1,22 @@
+index.html
+home/
+  - index.html
+public/
+  - contact/
+    - index.html
+  - terms/
+    - index.html
+  - privacy/
+    - index.html
+  - faq/
+    - index.html
+  - sitemap/
+    - index.html
+  - print/
+    - index.html
+  - distribution/
+    - index.html
+  - education/
+    - index.html
+  - portal/
+    - index.html
